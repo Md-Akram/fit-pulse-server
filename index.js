@@ -48,10 +48,10 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // await client.db("admin").command({ ping: 1 });
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
         const database = client.db("fitPulseDB");
         const subscribersCollection = database.collection("subscribers");
@@ -59,6 +59,7 @@ async function run() {
         const appliedCollection = database.collection('trainerApplications')
         const traineeAppliedCollection = database.collection('traineeApplications')
         const blogsCollection = database.collection('blogData')
+        const usersCollection = database.collection('users')
 
         app.get('/trainers', async (req, res) => {
             const trainers = await trainersCollection.find().toArray()
@@ -77,12 +78,34 @@ async function run() {
             res.json(blogs);
         });
 
+        app.get('/users/:email', async (req, res) => {
+            const requestedEmail = req.params.email
+            console.log(requestedEmail);
+            const query = { email: `${requestedEmail}` }
+            const user = await usersCollection.findOne(query)
+            res.json(user);
+        });
+
 
         app.post('/apply', async (req, res) => {
             const trainerInfo = req.body
             console.log(trainerInfo);
             const result = await appliedCollection.insertOne(trainerInfo)
 
+            res.send(result)
+        })
+
+        app.post('/subscribers', async (req, res) => {
+            const info = req.body
+            console.log(info);
+            const result = await subscribersCollection.insertOne(info)
+            res.send(result)
+        })
+
+        app.post('/users', async (req, res) => {
+            const userInfo = req.body
+            console.log(userInfo);
+            const result = await usersCollection.insertOne(userInfo)
             res.send(result)
         })
 
@@ -111,13 +134,6 @@ async function run() {
             const result = await blogsCollection.updateOne(filter, updateBlog, options)
             res.send(result)
         });
-
-        app.delete('/deletejob/:id', async (req, res) => {
-            const id = req.params.id
-            const query = { _id: new ObjectId(`${id}`) }
-            const result = await jobsCollection.deleteOne(query)
-            res.send(result)
-        })
 
     } finally {
         // Ensures that the client will close when you finish/error
