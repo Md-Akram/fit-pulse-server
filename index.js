@@ -55,13 +55,37 @@ async function run() {
 
         const database = client.db("fitPulseDB");
         const subscribersCollection = database.collection("subscribers");
+        const trainersCollection = database.collection("trainers");
+        const appliedCollection = database.collection('trainerApplications')
+        const traineeAppliedCollection = database.collection('traineeApplications')
+
+        app.get('/trainers', async (req, res) => {
+            const trainers = await trainersCollection.find().toArray()
+            console.log(trainers);
+            res.json(trainers);
+        });
+
+        app.get('/trainers/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(`${id}`) }
+            const askedtrainer = await trainersCollection.findOne(query)
+            res.send(askedtrainer)
+        });
 
 
-        app.post('/subscribers', async (req, res) => {
-            const subscriberInfo = req.body
+        app.post('/apply', async (req, res) => {
+            const trainerInfo = req.body
+            console.log(trainerInfo);
+            const result = await appliedCollection.insertOne(trainerInfo)
 
-            const result = await subscribersCollection.insertOne(subscriberInfo)
+            res.send(result)
+        })
 
+
+        app.post('/traineeApply', async (req, res) => {
+            const traineeInfo = req.body
+            console.log(traineeInfo);
+            const result = await traineeAppliedCollection.insertOne(traineeInfo)
             res.send(result)
         })
 
