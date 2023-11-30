@@ -58,10 +58,10 @@ async function run() {
         const trainersCollection = database.collection("trainers");
         const appliedCollection = database.collection('trainerApplications')
         const traineeAppliedCollection = database.collection('traineeApplications')
+        const blogsCollection = database.collection('blogData')
 
         app.get('/trainers', async (req, res) => {
             const trainers = await trainersCollection.find().toArray()
-            console.log(trainers);
             res.json(trainers);
         });
 
@@ -70,6 +70,11 @@ async function run() {
             const query = { _id: new ObjectId(`${id}`) }
             const askedtrainer = await trainersCollection.findOne(query)
             res.send(askedtrainer)
+        });
+
+        app.get('/blogs', async (req, res) => {
+            const blogs = await blogsCollection.find().toArray()
+            res.json(blogs);
         });
 
 
@@ -91,19 +96,21 @@ async function run() {
 
 
 
-        app.put('/bids/:id', async (req, res) => {
-            const id = req.params.id
-            const updatedBid = req.body
+        app.put('/increaseBlogLike/:id', async (req, res) => {
+            const { id } = req.params;
+            const updatedBlog = req.body
             const filter = { _id: new ObjectId(`${id}`) }
             const options = { upsert: true }
-            const updateBid = {
+
+            const updateBlog = {
                 $set: {
-                    ...updatedBid
+                    ...updatedBlog
                 }
             }
-            const result = await bidsCollection.updateOne(filter, updateBid, options)
+
+            const result = await blogsCollection.updateOne(filter, updateBlog, options)
             res.send(result)
-        })
+        });
 
         app.delete('/deletejob/:id', async (req, res) => {
             const id = req.params.id
